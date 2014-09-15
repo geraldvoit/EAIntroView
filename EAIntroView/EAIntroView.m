@@ -7,6 +7,8 @@
 
 @interface EAIntroView()
 
+@property (nonatomic, assign) BOOL didSetConstraints;
+@property (nonatomic, strong) NSLayoutConstraint *pageControlBottomConstraint;
 @property (nonatomic, strong) UIImageView *bgImageView;
 @property (nonatomic, strong) UIImageView *pageBgBack;
 @property (nonatomic, strong) UIImageView *pageBgFront;
@@ -51,6 +53,7 @@
 #pragma mark - Private
 
 - (void)applyDefaultsToSelfDuringInitializationWithframe:(CGRect)frame pages:(NSArray *)pagesArray {
+    self.didSetConstraints = NO;
     self.swipeToExit = YES;
     self.easeOutCrossDisolves = YES;
     self.hideOffscreenPages = YES;
@@ -349,15 +352,34 @@
     [self.skipButton addTarget:self action:@selector(skipIntroduction) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.skipButton];
     
-    if ([self respondsToSelector:@selector(addConstraint:)]) {
+    if([self respondsToSelector:@selector(setNeedsUpdateConstraints)]) {
+        [self setNeedsUpdateConstraints];
+    }
+}
+
+- (void)updateConstraints {
+    
+    if (!self.didSetConstraints) {
+        self.didSetConstraints = YES;
+       
+        // Create constraints here
+        
         self.pageControl.translatesAutoresizingMaskIntoConstraints = NO;
         [self addConstraint:[NSLayoutConstraint constraintWithItem:self.pageControl attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1 constant:0]];
-        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.pageControl attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.skipButton attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
-    
+        self.pageControlBottomConstraint = [NSLayoutConstraint constraintWithItem:self.pageControl attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1 constant:-20];
+        [self addConstraint:self.pageControlBottomConstraint];
+        
+        
         self.skipButton.translatesAutoresizingMaskIntoConstraints = NO;
         [self addConstraint:[NSLayoutConstraint constraintWithItem:self.skipButton attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1 constant:-30]];
-        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.skipButton attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1 constant:-20]];
+        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.skipButton attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.pageControl attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
     }
+    
+    // Update constraints if needed
+    
+    self.pageControlBottomConstraint.constant = - self.pageControlY;
+    
+    [super updateConstraints];
 }
 
 #pragma mark - UIScrollView Delegate
@@ -538,6 +560,10 @@ float easeOutValue(float value) {
     self.pageControl.autoresizingMask =  UIViewAutoresizingFlexibleWidth;
     [self.pageControl addTarget:self action:@selector(showPanelAtPageControl) forControlEvents:UIControlEventValueChanged];
     self.pageControl.numberOfPages = _pages.count;
+
+    if([self respondsToSelector:@selector(setNeedsUpdateConstraints)]) {
+        [self setNeedsUpdateConstraints];
+    }
 }
 
 - (void)setSkipButton:(UIButton *)skipButton {
