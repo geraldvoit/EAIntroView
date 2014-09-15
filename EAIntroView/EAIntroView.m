@@ -571,6 +571,7 @@ float easeOutValue(float value) {
     _skipButton = skipButton;
     [_skipButton addTarget:self action:@selector(skipIntroduction) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_skipButton];
+    [self updateConstraints];
 }
 
 - (void)setShowSkipButtonOnlyOnLastPage:(bool)showSkipButtonOnlyOnLastPage {
