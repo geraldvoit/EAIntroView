@@ -562,7 +562,8 @@ float easeOutValue(float value) {
     self.pageControl.numberOfPages = _pages.count;
 
     if([self respondsToSelector:@selector(setNeedsUpdateConstraints)]) {
-        [self setNeedsUpdateConstraints];
+        [self setNeedsLayout];
+        [self layoutIfNeeded];
     }
 }
 
